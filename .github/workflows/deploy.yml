@@ -1,0 +1,39 @@
+name: CD to GCP Cloud Run
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Authenticate Docker with Artifact Registry
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: Build Docker image
+      run: |
+        docker build -t flask-ci-cd-app .
+        docker tag flask-ci-cd-app us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/flask-repo/flask-ci-cd-app
+
+    - name: Push Docker image to Artifact Registry
+      run: |
+        docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/flask-repo/flask-ci-cd-app
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy flask-ci-cd-service \
+          --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/flask-repo/flask-ci-cd-app \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated
