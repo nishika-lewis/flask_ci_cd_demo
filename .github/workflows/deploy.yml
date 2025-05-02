@@ -12,24 +12,34 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Google Cloud SDK
+    # ✅ Authenticate to GCP using JSON key from GitHub Secrets
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    # ✅ Set up gcloud CLI
+    - name: Set up Google Cloud CLI
       uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Authenticate Docker with Artifact Registry
+    # ✅ Authenticate Docker to push to Artifact Registry
+    - name: Configure Docker to use gcloud as a credential helper
       run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
+    # ✅ Build Docker image
     - name: Build Docker image
       run: |
         docker build -t flask-ci-cd-app .
         docker tag flask-ci-cd-app us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/flask-repo/flask-ci-cd-app
 
+    # ✅ Push Docker image to Artifact Registry
     - name: Push Docker image to Artifact Registry
       run: |
         docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/flask-repo/flask-ci-cd-app
 
+    # ✅ Deploy to Cloud Run
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy flask-ci-cd-service \
@@ -37,3 +47,4 @@ jobs:
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated
+
