@@ -11,7 +11,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Tell Cloud Run which port to expose
-EXPOSE 5000
+EXPOSE 8080
 
 # Command to run the app
 CMD ["python", "app.py"]
