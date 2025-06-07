@@ -23,9 +23,6 @@ The goal of this project was not the complexity of the app, but rather understan
 
 ## 📸 Screenshot
 
-![github-actions-success](https://github.com/user-attachments/assets/5214f791-0b54-4af9-8635-dcde8378289b)
-
-
 ![CI/CD Workflow Success](./github-actions-success.png)
 
 ---
